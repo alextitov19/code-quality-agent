@@ -83,7 +83,7 @@ npm run dev
 Analyze a directory or file:
 ```bash
 npm run analyze -- /path/to/your/code
-npm run analyze -- ./src/example.js
+npm run analyze -- ./src
 ```
 
 ### Option 3: API Integration
