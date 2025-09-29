@@ -7,3 +7,4 @@ reports/*
 .env
 *.log
 .DS_Store
+temp-repos/*

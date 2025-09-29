@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { CodeQualityAgent } from './agent';
 import { FileParser } from './utils/fileParser';
 import { ReportGenerator } from './utils/reportGenerator';
+import { GitHubAnalyzer } from './utils/githubAnalyzer';
 import { AnalysisResult } from './types';
 
 dotenv.config();
@@ -36,6 +37,7 @@ if (!apiKey) {
 const agent = new CodeQualityAgent(apiKey);
 const fileParser = new FileParser();
 const reportGenerator = new ReportGenerator();
+const githubAnalyzer = new GitHubAnalyzer();
 
 const analysisCache = new Map<string, AnalysisResult>();
 
@@ -47,6 +49,7 @@ app.get('/', (req: Request, res: Response) => {
             health: 'GET /',
             analyzeFiles: 'POST /api/analyze/files',
             analyzeDirectory: 'POST /api/analyze/directory',
+            analyzeGitHub: 'POST /api/analyze/github',
             askQuestion: 'POST /api/ask',
             getReport: 'GET /api/report/:id',
         },
@@ -136,6 +139,62 @@ app.post('/api/analyze/directory', async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error analyzing directory:', error);
         res.status(500).json({ error: 'Analysis failed', details: String(error) });
+    }
+});
+
+app.post('/api/analyze/github', async (req: Request, res: Response) => {
+    try {
+        const { githubUrl } = req.body;
+
+        if (!githubUrl) {
+            return res.status(400).json({ error: 'githubUrl is required' });
+        }
+
+        console.log(`Analyzing GitHub repository: ${githubUrl}`);
+
+        // Validate the repository first
+        await githubAnalyzer.validateGitHubRepo(githubUrl);
+
+        // Clone and analyze the repository
+        const { files, repoInfo, tempPath } = await githubAnalyzer.analyzeGitHubRepo(githubUrl);
+
+        if (files.length === 0) {
+            await githubAnalyzer.cleanup(tempPath);
+            return res.status(400).json({ error: 'No supported code files found in repository' });
+        }
+
+        const result = await agent.analyzeCode(files);
+
+        const reportId = `github-${repoInfo.owner}-${repoInfo.repo}-${Date.now()}`;
+        analysisCache.set(reportId, result);
+
+        const htmlPath = path.join('reports', `${reportId}.html`);
+        const mdPath = path.join('reports', `${reportId}.md`);
+
+        await reportGenerator.generateHTMLReport(result, htmlPath);
+        await reportGenerator.generateMarkdownReport(result, mdPath);
+
+        // Clean up the temporary repository
+        await githubAnalyzer.cleanup(tempPath);
+
+        res.json({
+            success: true,
+            reportId,
+            reportUrl: `/reports/${reportId}.html`,
+            markdownUrl: `/reports/${reportId}.md`,
+            repository: {
+                owner: repoInfo.owner,
+                repo: repoInfo.repo,
+                branch: repoInfo.branch,
+                url: githubUrl
+            },
+            summary: result.summary,
+            metrics: result.metrics,
+        });
+    } catch (error) {
+        console.error('Error analyzing GitHub repository:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ error: 'GitHub analysis failed', details: errorMessage });
     }
 });
 
