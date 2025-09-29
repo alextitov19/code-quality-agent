@@ -36,14 +36,14 @@ program
             // Check if target is a file or directory
             const fs = require('fs');
             const isFile = fs.statSync(targetPath).isFile();
-            
+
             let codeFiles;
             if (isFile) {
                 codeFiles = await fileParser.parseFiles([targetPath]);
             } else {
                 codeFiles = await fileParser.parseDirectory(targetPath);
             }
-            
+
             console.log(`📁 Found ${codeFiles.length} code files`);
 
             if (codeFiles.length === 0) {

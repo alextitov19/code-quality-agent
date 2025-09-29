@@ -27,9 +27,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const apiKey = process.env.ANTHROPIC_API_KEY;
+const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
-    console.error('ANTHROPIC_API_KEY is not set in .env file');
+    console.error('OPENAI_API_KEY is not set in .env file');
     process.exit(1);
 }
 
