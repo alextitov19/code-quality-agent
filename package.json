@@ -1,0 +1,35 @@
+{
+  "name": "code-quality-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "analyze": "ts-node src/cli.ts analyze"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^14.0.1",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "fast-glob": "^3.3.3",
+    "fs-extra": "^11.3.2",
+    "glob": "^11.0.3",
+    "multer": "^2.0.2",
+    "openai": "^5.23.1"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.5",
+    "@types/express": "^5.0.3",
+    "@types/fs-extra": "^11.0.4",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.5.2",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

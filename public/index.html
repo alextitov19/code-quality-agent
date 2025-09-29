@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Code Quality Agent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #667eea; }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background: #5568d3; }
+        input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Code Quality Intelligence Agent</h1>
+    
+    <div class="section">
+        <h2>Upload Files for Analysis</h2>
+        <input type="file" id="fileInput" multiple accept=".js,.ts,.py,.java,.cpp,.c,.go,.rb,.php,.swift,.kt,.rs">
+        <button onclick="analyzeFiles()">Analyze Files</button>
+    </div>
+    
+    <div class="section">
+        <h2>Ask a Question</h2>
+        <input type="text" id="reportId" placeholder="Report ID (e.g., report-1234567890)">
+        <input type="text" id="question" placeholder="Your question about the code">
+        <button onclick="askQuestion()">Ask</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function analyzeFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            
+            for (let file of fileInput.files) {
+                formData.append('files', file);
+            }
+            
+            if (fileInput.files.length === 0) {
+                alert('Please select files to analyze');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.innerHTML = '<div class="loading"></div> Analyzing files...';
+            
+            try {
+                const response = await fetch('/api/analyze/files', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Analysis Complete!</h3>
+                        <p><strong>Report ID:</strong> ${data.reportId}</p>
+                        <p><strong>Total Files:</strong> ${data.summary.totalFiles}</p>
+                        <p><strong>Total Issues:</strong> ${data.summary.totalIssues}</p>
+                        <p><strong>Critical Issues:</strong> ${data.summary.criticalIssues}</p>
+                        <p><strong>Quality Score:</strong> ${data.metrics.codeQualityScore}/100</p>
+                        <p><strong>Security Score:</strong> ${data.metrics.securityScore}/100</p>
+                        <p><strong>Maintainability Score:</strong> ${data.metrics.maintainabilityScore}/100</p>
+                        <p><a href="${data.reportUrl}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: bold;">📄 View Full Report</a></p>
+                    `;
+                } else {
+                    result.innerHTML = `<p style="color: red;">❌ Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function askQuestion() {
+            const reportId = document.getElementById('reportId').value;
+            const question = document.getElementById('question').value;
+            const result = document.getElementById('result');
+            
+            if (!reportId || !question) {
+                result.innerHTML = '<p style="color: red;">❌ Please enter both Report ID and question</p>';
+                return;
+            }
+            
+            result.innerHTML = '<div class="loading"></div> Thinking...';
+            
+            try {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reportId, question })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>💬 Answer:</h3>
+                        <p style="white-space: pre-wrap;">${data.answer}</p>
+                    `;
+                } else {
+                    result.innerHTML = `<p style="color: red;">❌ Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
