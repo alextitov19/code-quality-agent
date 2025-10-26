@@ -156,10 +156,20 @@ export class ReportGenerator {
         .snippet {
             background: #2d2d2d;
             color: #f8f8f2;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
             overflow-x: auto;
             margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .snippet code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
         }
     </style>
 </head>

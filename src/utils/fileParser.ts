@@ -43,6 +43,9 @@ export class FileParser {
             absolute: true,
         });
 
+        console.log(`📂 Found ${foundFiles.length} total files in directory`);
+        console.log(`🔍 Looking for files with extensions: ${Object.keys(this.supportedExtensions).join(', ')}`);
+
         for (const filePath of foundFiles) {
             const ext = path.extname(filePath);
             const language = this.supportedExtensions[ext];
@@ -54,22 +57,26 @@ export class FileParser {
 
                     // Skip very large files (>1MB)
                     if (stats.size > 1024 * 1024) {
-                        console.log(`Skipping large file: ${filePath}`);
+                        console.log(`⏭️  Skipping large file (${Math.round(stats.size / 1024)}KB): ${path.relative(directoryPath, filePath)}`);
                         continue;
                     }
 
+                    const relativePath = path.relative(directoryPath, filePath);
+                    console.log(`✅ Added ${language} file: ${relativePath} (${stats.size} bytes)`);
+                    
                     files.push({
-                        path: path.relative(directoryPath, filePath),
+                        path: relativePath,
                         content,
                         language,
                         size: stats.size,
                     });
                 } catch (error) {
-                    console.error(`Error reading file ${filePath}:`, error);
+                    console.error(`❌ Error reading file ${filePath}:`, error);
                 }
             }
         }
 
+        console.log(`📊 Total code files parsed: ${files.length}`);
         return files;
     }
 

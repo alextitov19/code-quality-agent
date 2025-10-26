@@ -83,6 +83,18 @@
     <div id="result"></div>
 
     <script>
+        // Dynamically detect the base path from the current URL
+        const getBasePath = () => {
+            const path = window.location.pathname;
+            // If we're at /code-quality-agent or similar, use that as base
+            if (path.includes('/code-quality-agent')) {
+                return '/code-quality-agent';
+            }
+            return '';
+        };
+        
+        const API_BASE = getBasePath();
+        
         async function analyzeFiles() {
             const fileInput = document.getElementById('fileInput');
             const formData = new FormData();
@@ -100,7 +112,7 @@
             result.innerHTML = '<div class="loading"></div> Analyzing files...';
             
             try {
-                const response = await fetch('/api/analyze/files', {
+                const response = await fetch(`${API_BASE}/api/analyze/files`, {
                     method: 'POST',
                     body: formData
                 });
@@ -139,7 +151,7 @@
             result.innerHTML = '<div class="loading"></div> Cloning and analyzing repository...';
             
             try {
-                const response = await fetch('/api/analyze/github', {
+                const response = await fetch(`${API_BASE}/api/analyze/github`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ githubUrl })
@@ -183,7 +195,7 @@
             result.innerHTML = '<div class="loading"></div> Thinking...';
             
             try {
-                const response = await fetch('/api/ask', {
+                const response = await fetch(`${API_BASE}/api/ask`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reportId, question })

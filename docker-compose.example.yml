@@ -20,14 +20,6 @@ services:
     ports:
       - "3000:3000"
     
-    volumes:
-      # Persistent storage for generated reports
-      - ./data/reports:/app/reports
-      # Temporary file uploads
-      - ./data/uploads:/app/uploads
-      # Temporary GitHub repository clones
-      - ./data/temp-repos:/app/temp-repos
-    
     networks:
       - web
     

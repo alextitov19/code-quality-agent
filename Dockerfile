@@ -39,7 +39,7 @@ RUN npm ci --only=production && \
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
 
-# Create necessary directories and set permissions
+# Create necessary directories with proper ownership and permissions
 RUN mkdir -p uploads reports temp-repos && \
     chown -R nodejs:nodejs /app
 

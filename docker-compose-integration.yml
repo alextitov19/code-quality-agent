@@ -12,22 +12,18 @@ services:
 
   # ADD THIS SERVICE - Code Quality Agent
   code-quality-agent:
-    image: code-quality-agent:latest
+    image: 471112521203.dkr.ecr.us-east-1.amazonaws.com/code-quality-agent:v0.0.7
     container_name: code-quality-agent
     restart: unless-stopped
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
       - NODE_ENV=production
       - PORT=3000
     networks:
       - webnet
     expose:
       - "3000"  # exposes to Nginx internally, not host
-    volumes:
-      # Persistent storage for reports
-      - ./code-quality-data/reports:/app/reports
-      - ./code-quality-data/uploads:/app/uploads
-      - ./code-quality-data/temp-repos:/app/temp-repos
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
