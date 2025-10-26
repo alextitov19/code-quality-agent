@@ -1,0 +1,70 @@
+version: "3"
+
+services:
+  personal-website:
+    image: 471112521203.dkr.ecr.us-east-1.amazonaws.com/personal-website:latest
+    container_name: personal-website
+    networks:
+      - webnet
+    expose:
+      - "80"   # exposes to Nginx internally, not host
+    restart: always
+
+  # ADD THIS SERVICE - Code Quality Agent
+  code-quality-agent:
+    image: code-quality-agent:latest
+    container_name: code-quality-agent
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - webnet
+    expose:
+      - "3000"  # exposes to Nginx internally, not host
+    volumes:
+      # Persistent storage for reports
+      - ./code-quality-data/reports:/app/reports
+      - ./code-quality-data/uploads:/app/uploads
+      - ./code-quality-data/temp-repos:/app/temp-repos
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    user: root
+    depends_on:
+      - personal-website
+      - code-quality-agent  # ADD THIS DEPENDENCY
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../certs:/etc/letsencrypt:ro
+    networks:
+      - webnet
+    restart: always
+
+networks:
+  webnet:
+    driver: bridge
